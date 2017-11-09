@@ -92,7 +92,8 @@ with tf.Session() as sess:
         X_batch, Y_batch = mnist.validation.next_batch(BATCH_SIZE)
         _, loss_batch, pred= sess.run([optimizer, loss,y_out],
                                                feed_dict={X: X_batch, Y: Y_batch, is_training:False})
-
+# something wrong here
+# need to correct
 
         correct_preds = tf.equal(tf.argmax(pred, 1), tf.argmax(Y_batch, 1))
         accuracy = tf.reduce_sum(tf.cast(correct_preds, tf.float32))
