@@ -18,7 +18,7 @@ def make_dir(path):
 
 lr = 0.001  # learning rate
 BATCH_SIZE = 128
-N_EPOCHS = 10
+N_EPOCHS = 50
 mnist = input_data.read_data_sets('./data/mnist', one_hot=True)
 SKIP_STEP = 100
 X = tf.placeholder(tf.float32, [None, 784])
@@ -86,7 +86,7 @@ with tf.Session() as sess:
         writer.add_summary(summary, global_step=index)
         total_loss += loss_batch
         if (index + 1) % SKIP_STEP == 0:
-            print('Average loss at step {}: {:5.1f}'.format(index + 1, total_loss / SKIP_STEP))
+            print('Average loss at step {}: {:9.8f}'.format(index + 1, total_loss / SKIP_STEP))
             total_loss = 0.0
             saver.save(sess, 'checkpoints/mnist', index)
 
