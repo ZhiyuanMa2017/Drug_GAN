@@ -80,7 +80,6 @@ with tf.Session() as sess:
 
     total_loss = 0.0
     for index in range(initial_step, n_batches * N_EPOCHS):  # train the model n_epochs times
-        print(index)
         X_batch, Y_batch = mnist.train.next_batch(BATCH_SIZE)
         _, loss_batch, summary = sess.run([optimizer, loss, summary_op],
                                           feed_dict={X: X_batch, Y: Y_batch, is_training: True})
@@ -93,4 +92,4 @@ with tf.Session() as sess:
 
     print("Optimization Finished!")  # should be around 0.35 after 25 epochs
     print("Total time: {0} seconds".format(time.time() - start_time))
-    print("Accuracy:", acc.eval({X: mnist.test.images, Y: mnist.test.labels}))
+    print("Accuracy:", acc.eval({X: mnist.test.images, Y: mnist.test.labels, is_training: False}))
