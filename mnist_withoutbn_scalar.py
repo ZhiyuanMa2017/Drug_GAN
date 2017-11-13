@@ -75,40 +75,39 @@ class Model:
         return self.sess.run([self.cost, self.optimizer], feed_dict={
             self.X: x_data, self.Y: y_data, self.is_training: training})
 
+
+
 # initialize
 sess = tf.Session()
 m1 = Model(sess, "m1")
-
 sess.run(tf.global_variables_initializer())
 
 print('Learning Started!')
+writer = tf.summary.FileWriter('./graphs', sess.graph)
 
 # train my model
+loss = []
+acc = []
 for epoch in range(training_epochs):
     avg_cost = 0
     total_batch = int(mnist.train.num_examples / batch_size)
-
+    avg_acc = 0
     for i in range(total_batch):
         batch_xs, batch_ys = mnist.train.next_batch(batch_size)
         c, _ = m1.train(batch_xs, batch_ys)
         avg_cost += c / total_batch
+        a = m1.get_accuracy(batch_xs, batch_ys)
+        avg_acc += a / total_batch
 
-    print('Epoch:', '%04d' % (epoch + 1), 'cost =', '{:.9f}'.format(avg_cost))
+    print('Epoch:', '%04d' % (epoch + 1), 'loss =', '{:.9f}'.format(avg_cost),'acc =', '{:.9f}'.format(avg_acc))
+    loss.append(avg_cost)
+    acc.append(avg_acc)
 
+#
 print('Learning Finished!')
 
 # Test model and check accuracy
-print('val Accuracy:', m1.get_accuracy(mnist.validation.images, mnist.validation.labels))
-
 print('Accuracy:', m1.get_accuracy(mnist.test.images, mnist.test.labels))
 #final accuracy:0.9937
 
 
-#plot picture and save prediction
-test_images = mnist.test.images[:5]
-preds = list(m1.predict(test_images))
-preds = [np.argmax(i) for i in preds]
-for i in range(5):
-    plt.imshow(np.reshape(test_images[i], [28, 28]), cmap='gray')
-    plt.show()
-    plt.savefig( str(preds[i])+ ".jpg")
