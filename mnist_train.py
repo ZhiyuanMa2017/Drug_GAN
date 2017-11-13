@@ -18,7 +18,7 @@ def make_dir(path):
 
 lr = 0.001  # learning rate
 BATCH_SIZE = 128
-N_EPOCHS = 50
+N_EPOCHS = 15
 mnist = input_data.read_data_sets('./data/mnist', one_hot=True)
 SKIP_STEP = 100
 X = tf.placeholder(tf.float32, [None, 784])
