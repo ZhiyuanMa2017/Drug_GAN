@@ -7,9 +7,6 @@
           <mappings>
             <mapping deploy="/tf_demo" local="$PROJECT_DIR$" web="/" />
           </mappings>
-          <excludedPaths>
-            <excludedPath local="true" path="$USER_HOME$/.pycharm_helpers" />
-          </excludedPaths>
         </serverdata>
       </paths>
     </serverData>

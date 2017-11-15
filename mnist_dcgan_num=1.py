@@ -28,7 +28,7 @@ num_steps = 10000
 batch_size = 128
 lr_generator = 0.002
 lr_discriminator = 0.002
-training_epochs = 10
+training_epochs = 50
 
 image_dim = 784
 noise_dim = 100
@@ -107,20 +107,55 @@ sess = tf.Session()
 
 sess.run(init)
 
-for epoch in range(training_epochs):
+for epoch in range(50):
     total_batch = int(len(numone_image) / batch_size)
     for i in range(total_batch):
         batch_x = numone_image[i:i + batch_size]
         batch_x = np.reshape(batch_x, newshape=[-1, 28, 28, 1])
         batch_x = batch_x * 2. - 1.
-
         z = np.random.uniform(-1., 1., size=[batch_size, noise_dim])
         _, dl = sess.run([train_disc, disc_loss],
                          feed_dict={real_image_input: batch_x, noise_input: z, is_training: True})
-
         z = np.random.uniform(-1., 1., size=[batch_size, noise_dim])
         _, gl = sess.run([train_gen, gen_loss], feed_dict={noise_input: z, is_training: True})
         if i==total_batch-1:
-            print('epoch %epoch: Generator Loss: %f, Discriminator Loss: %f' % (epoch, gl, dl))
+            print('epoch %i: Generator Loss: %f, Discriminator Loss: %f' % (epoch, gl, dl))
+
+# for j in range(10):
+#     for epoch in range(10):
+#         total_batch = int(len(numone_image) / batch_size)
+#         for i in range(total_batch):
+#             batch_x = numone_image[i:i + batch_size]
+#             batch_x = np.reshape(batch_x, newshape=[-1, 28, 28, 1])
+#             batch_x = batch_x * 2. - 1.
+#             z = np.random.uniform(-1., 1., size=[batch_size, noise_dim])
+#             _, gl = sess.run([train_gen, gen_loss], feed_dict={noise_input: z, is_training: True})
+#             if i == total_batch - 1:
+#                 print('epoch %i: Generator Loss: %f' % (epoch, gl))
+#     for epoch in range(10):
+#         total_batch = int(len(numone_image) / batch_size)
+#         for i in range(total_batch):
+#             batch_x = numone_image[i:i + batch_size]
+#             batch_x = np.reshape(batch_x, newshape=[-1, 28, 28, 1])
+#             batch_x = batch_x * 2. - 1.
+#             z = np.random.uniform(-1., 1., size=[batch_size, noise_dim])
+#             _, dl = sess.run([train_disc, disc_loss],
+#                              feed_dict={real_image_input: batch_x, noise_input: z, is_training: True})
+#             z = np.random.uniform(-1., 1., size=[batch_size, noise_dim])
+#             _, gl = sess.run([train_gen, gen_loss], feed_dict={noise_input: z, is_training: True})
+#             if i == total_batch - 1:
+#                 print('epoch %i: Generator Loss: %f, Discriminator Loss: %f' % (epoch, gl, dl))
 
 
+
+n = 6
+canvas = np.empty((28 * n, 28 * n))
+for i in range(n):
+    z = np.random.uniform(-1., 1., size=[n, noise_dim])
+    g = sess.run(gen_sample, feed_dict={noise_input: z, is_training:False})
+    for j in range(n):
+        canvas[i * 28:(i + 1) * 28, j * 28:(j + 1) * 28] = g[j].reshape([28, 28])
+plt.figure(figsize=(n, n))
+plt.imshow(canvas, origin="upper", cmap="gray")
+plt.show()
+plt.savefig("ganonetemp2.jpg")
