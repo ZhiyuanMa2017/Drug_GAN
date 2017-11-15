@@ -4,7 +4,15 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from tensorflow.examples.tutorials.mnist import input_data
 import numpy as np
+import os
 mnist = input_data.read_data_sets('./data/mnist', one_hot=True)
+
+def make_dir(path):
+    """ Create a directory if there isn't one already. """
+    try:
+        os.mkdir(path)
+    except OSError:
+        pass
 
 # hyper parameters
 learning_rate = 0.001
@@ -40,10 +48,16 @@ tf.summary.scalar('acc', accuracy)
 sum = tf.summary.merge_all()
 
 # initialize
+make_dir('checkpoints')
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     print('Learning Started!')
+    saver = tf.train.Saver()
     writer = tf.summary.FileWriter('./graphs', sess.graph)
+    ckpt = tf.train.get_checkpoint_state(os.path.dirname('checkpoints'))
+    # if that checkpoint exists, restore from checkpoint
+    if ckpt and ckpt.model_checkpoint_path:
+        saver.restore(sess, ckpt.model_checkpoint_path)
     # train my model
     for epoch in range(training_epochs):
         avg_cost = 0
@@ -56,6 +70,10 @@ with tf.Session() as sess:
             avg_cost += float(c)/ total_batch
             a = sess.run(accuracy,feed_dict={X: batch_xs, Y: batch_ys, is_training:False})
             avg_acc += a/ total_batch
+            if epoch == training_epochs-1 and i == total_batch-1:
+                index = epoch*total_batch+i
+                saver.save(sess, 'checkpoints/mnist', index)
+#尝试 未运行实现
         print('Epoch:', '%04d' % (epoch + 1), 'loss =', '{:.9f}'.format(avg_cost),'acc =', '{:.9f}'.format(avg_acc))
 
 print('Learning Finished!')
@@ -63,5 +81,5 @@ print('Learning Finished!')
 # Test model and check accuracy
 #print('Accuracy:', m1.get_accuracy(mnist.test.images, mnist.test.labels))
 #final accuracy:0.9937
-
+#
 
