@@ -168,10 +168,10 @@ with get_session() as sess:
         for i in range(total_batch):
             batch_x = numone_image[i:i + batch_size]
             _, D_loss_curr = sess.run([D_train_step, D_loss], feed_dict={x: batch_x,is_training: True})
+            for j in range(1000):
+                _, = sess.run([G_train_step], feed_dict={is_training: True})
             _, G_loss_curr = sess.run([G_train_step, G_loss], feed_dict={is_training: True})
-            # for j in range(1000):
-            #     _, = sess.run([G_train_step])
-            # _, G_loss_curr = sess.run([G_train_step, G_loss])
+
         # print loss every so often.
         # We want to make sure D_loss doesn't go to 0
         samples = sess.run(G_sample,feed_dict={is_training: False})
