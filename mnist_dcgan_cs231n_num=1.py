@@ -92,7 +92,6 @@ def discriminator(x):
 
 def generator(z):
     with tf.variable_scope("generator"):
-        # TODO: implement architecture
         layer1 = tf.layers.dense(z, units=1024, activation=tf.nn.relu)
         layer2 = tf.layers.batch_normalization(layer1, training=True)
         layer3 = tf.layers.dense(layer2, units=7 * 7 * 128, activation=tf.nn.relu)
@@ -163,6 +162,7 @@ with get_session() as sess:
         for i in range(total_batch):
             batch_x = numone_image[i:i + batch_size]
             _, D_loss_curr = sess.run([D_train_step, D_loss], feed_dict={x: batch_x})
+            _, G_loss_curr = sess.run([G_train_step, G_loss])
             # for j in range(1000):
             #     _, = sess.run([G_train_step])
             # _, G_loss_curr = sess.run([G_train_step, G_loss])
