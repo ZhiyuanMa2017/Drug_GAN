@@ -79,15 +79,15 @@ def sample_noise(batch_size, dim):
 
 def discriminator(x):
     with tf.variable_scope("discriminator"):
-        # TODO: implement architecture
-        x = tf.reshape(x, [-1, 28, 28, 1])
-        layer1 = tf.layers.conv2d(x, filters=32, kernel_size=5, strides=1, activation=leaky_relu)
-        layer2 = tf.layers.average_pooling2d(layer1, pool_size=2, strides=2)
-        layer3 = tf.layers.conv2d(layer2, filters=64, kernel_size=5, strides=1, activation=leaky_relu)
-        layer4 = tf.layers.average_pooling2d(layer3, pool_size=2, strides=2)
-        x_flat = tf.contrib.layers.flatten(layer4)
-        layer5 = tf.layers.dense(x_flat, units=4 * 4 * 64, activation=leaky_relu)
-        logits = tf.layers.dense(layer5, units=1)
+        x = tf.reshape(x, [-1, 784])
+        layer1 = tf.layers.dense(x, units=20,use_bias=True)
+        layer2 = tf.layers.batch_normalization(layer1, training=is_training)
+        layer3 = leaky_relu(layer2)
+        layer4 = tf.layers.dense(layer3, units=20,use_bias=True)
+        layer5 = tf.layers.batch_normalization(layer4, training=is_training)
+        layer6 = leaky_relu(layer5)
+
+        logits = tf.layers.dense(layer6, units=1)
         return logits
 
 
@@ -155,23 +155,29 @@ D_train_step = D_solver.minimize(D_loss, var_list=D_vars)
 G_train_step = G_solver.minimize(G_loss, var_list=G_vars)
 D_extra_step = tf.get_collection(tf.GraphKeys.UPDATE_OPS,'discriminator')
 G_extra_step = tf.get_collection(tf.GraphKeys.UPDATE_OPS,'generator')
+tf.summary.scalar('D_loss', D_loss)
+tf.summary.scalar('G_loss', G_loss)
+summ = tf.summary.merge_all()
 
 show_every=250
 print_every=50
 batch_size=128
-num_epoch=10
+num_epoch=100
 
 with get_session() as sess:
     sess.run(tf.global_variables_initializer())
+    writer = tf.summary.FileWriter('./graphs', sess.graph)
+
     for epoch in range(num_epoch):
         total_batch = int(len(numone_image) / batch_size)
         for i in range(total_batch):
             batch_x = numone_image[i:i + batch_size]
-            _, D_loss_curr = sess.run([D_train_step, D_loss], feed_dict={x: batch_x,is_training: True})
-            for j in range(1000):
-                _, = sess.run([G_train_step], feed_dict={is_training: True})
-            _, G_loss_curr = sess.run([G_train_step, G_loss], feed_dict={is_training: True})
-
+            _,  __= sess.run([D_train_step,G_train_step], feed_dict={x: batch_x,is_training: True})
+            for j in range(10):
+                _ = sess.run([G_train_step], feed_dict={is_training: True})
+            D_loss_curr,  G_loss_curr, summm = sess.run([D_loss, G_loss, summ], feed_dict={x: batch_x,is_training: True})
+            # _, G_loss_curr = sess.run([G_train_step, G_loss], feed_dict={is_training: True})
+            writer.add_summary(summm)
         # print loss every so often.
         # We want to make sure D_loss doesn't go to 0
         samples = sess.run(G_sample,feed_dict={is_training: False})
