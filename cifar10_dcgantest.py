@@ -39,11 +39,15 @@ num_epoch=100
 
 cifar10_dir = 'data/cifar-10-batches-py'
 X_train, y_train, X_test, y_test = load_CIFAR10(cifar10_dir)
-from sklearn.preprocessing import MinMaxScaler
-minmax = MinMaxScaler()
-X_train_rows = X_train.reshape(X_train.shape[0], 32 * 32 * 3)
-X_train = minmax.fit_transform(X_train_rows)
-X_train = X_train.reshape(X_train.shape[0], 32, 32, 3)
+mean_image = np.mean(X_train, axis=0)
+X_train -= mean_image
+X_test -= mean_image
+
+# Invoke the above function to get our data.
+print('Train data shape: ', X_train.shape)
+print('Train labels shape: ', y_train.shape)
+print('Test data shape: ', X_test.shape)
+print('Test labels shape: ', y_test.shape)
 
 
 def leaky_relu(x, alpha=0.01):
@@ -136,32 +140,31 @@ tf.summary.scalar('G_loss', G_loss)
 summ = tf.summary.merge_all()
 
 
+sess=get_session()
+sess.run(tf.global_variables_initializer())
+writer = tf.summary.FileWriter('./graphs', sess.graph)
+for epoch in range(num_epoch):
+    total_batch = int(len(X_train) / batch_size)
+    for i in range(total_batch):
+        batch_x = X_train[i:i + batch_size]
+        _,  __= sess.run([D_train_step,G_train_step], feed_dict={x: batch_x,is_training: True})
+        D_loss_curr,  G_loss_curr, summm = sess.run([D_loss, G_loss, summ], feed_dict={x: batch_x,is_training: True})
+        # _, G_loss_curr = sess.run([G_train_step, G_loss], feed_dict={is_training: True})
+        writer.add_summary(summm)
+    # print loss every so often.
+    # We want to make sure D_loss doesn't go to 0
+    print('Epoch: {}, D: {:.4}, G:{:.4}'.format(epoch, D_loss_curr, G_loss_curr))
+    samples = sess.run(G_sample, feed_dict={is_training: False})
+    samples = (samples + 1) / 2
+    for h in range(10):
+        plt.subplot(1,10,h+1)
+        plt.imshow(samples[h].astype('uint8'))
+    plt.savefig('ep' + str(epoch) + '.jpg')
 
-with get_session() as sess:
-    sess.run(tf.global_variables_initializer())
-    writer = tf.summary.FileWriter('./graphs', sess.graph)
-
-    for epoch in range(num_epoch):
-        total_batch = int(len(X_train) / batch_size)
-        for i in range(total_batch):
-            batch_x = X_train[i:i + batch_size]
-            _,  __= sess.run([D_train_step,G_train_step], feed_dict={x: batch_x,is_training: True})
-            __= sess.run([G_train_step], feed_dict={is_training: True})
-            D_loss_curr,  G_loss_curr, summm = sess.run([D_loss, G_loss, summ], feed_dict={x: batch_x,is_training: True})
-            # _, G_loss_curr = sess.run([G_train_step, G_loss], feed_dict={is_training: True})
-            writer.add_summary(summm)
-        # print loss every so often.
-        # We want to make sure D_loss doesn't go to 0
-        print('Epoch: {}, D: {:.4}, G:{:.4}'.format(epoch, D_loss_curr, G_loss_curr))
-        samples = sess.run(G_sample, feed_dict={is_training: False})
-        samples=samples[:15]
-        samples = (samples + 1) / 2
-        fig, axes = plt.subplots(nrows=1, ncols=15, sharex=True, sharey=True, figsize=(30, 2))
-        for img, ax in zip(samples, axes):
-            ax.imshow(img.reshape((32, 32, 3)))
-            ax.get_xaxis().set_visible(False)
-            ax.get_yaxis().set_visible(False)
-        fig.tight_layout(pad=0)
-        plt.savefig('ep' + str(epoch) + '.jpg')
-
-
+print('Final images')
+samples = sess.run(G_sample,feed_dict={is_training: False})
+samples = (samples + 1) / 2
+for h in range(10):
+    plt.subplot(1,10,h+1)
+    plt.imshow(samples[h].astype('uint8'))
+plt.savefig('cifarfinal' + '.jpg')
