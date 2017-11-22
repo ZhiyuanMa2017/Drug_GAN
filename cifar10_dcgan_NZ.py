@@ -201,13 +201,15 @@ def train(noise_size, data_shape, batch_size, n_samples):
         #训练完成画一张图
         samples = show_generator_output(sess, n_samples, inputs_noise, data_shape[-1])
         samples = (samples + 1) / 2
-        fig, axes = plt.subplots(nrows=1, ncols=10, sharex=True, sharey=True, figsize=(30, 2))
-        for img, ax in zip(samples, axes):
-            ax.imshow(img.reshape((32, 32, 3)), cmap='Greys_r')
-            ax.get_xaxis().set_visible(False)
-            ax.get_yaxis().set_visible(False)
-        fig.tight_layout(pad=0)
-        plt.savefig('final1111111.jpg')
+        fig, axes = plt.subplots(nrows=3, ncols=20, sharex=True, sharey=True, figsize=(80,12))
+        imgs = samples[:60]
+        for image, row in zip([imgs[:20], imgs[20:40], imgs[40:60]], axes):
+            for img, ax in zip(image, row):
+                ax.imshow(img)
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
+        fig.tight_layout(pad=0.1)
+        plt.savefig('final1111111111.jpg')
 
 with tf.Graph().as_default():
     train(noise_size, [-1, 32, 32, 3], batch_size, n_samples)
