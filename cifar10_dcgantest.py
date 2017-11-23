@@ -22,10 +22,11 @@ X_train, y_train, X_test, y_test = load_CIFAR10(cifar10_dir)
 
 from sklearn.preprocessing import MinMaxScaler
 minmax = MinMaxScaler()
-X_train_rows = X_train.reshape(X_train.shape[0], 32 * 32 * 3)
-X_train = minmax.fit_transform(X_train_rows)
-X_train = X_train.reshape(X_train.shape[0], 32, 32, 3)
-images = X_train[y_train==0]
+images = np.concatenate((X_train[y_train==2],X_test[y_test==2]))
+images_rows = images.reshape(images.shape[0], 32 * 32 * 3)
+images = minmax.fit_transform(images_rows)
+images = images.reshape(images.shape[0], 32, 32, 3)
+
 
 def get_inputs(noise_dim, image_height, image_width, image_depth):
     inputs_real = tf.placeholder(tf.float32, [None, image_height, image_width, image_depth], name='inputs_real')
@@ -148,9 +149,9 @@ def show_generator_output(sess, n_images, inputs_noise, output_dim):
                        feed_dict={inputs_noise: examples_noise})
     return samples
 
-batch_size = 256
+batch_size = 1024
 noise_size = 100
-epochs = 500
+epochs = 1000
 n_samples = 80
 learning_rate = 0.001
 beta1 = 0.4
@@ -205,7 +206,7 @@ def train(noise_size, data_shape, batch_size, n_samples):
                 ax.get_xaxis().set_visible(False)
                 ax.get_yaxis().set_visible(False)
         fig.tight_layout(pad=0.1)
-        plt.savefig('final000.jpg')
+        plt.savefig('final2.jpg')
 
 with tf.Graph().as_default():
     train(noise_size, [-1, 32, 32, 3], batch_size, n_samples)
