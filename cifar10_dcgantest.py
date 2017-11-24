@@ -10,22 +10,17 @@ from load_cifar10 import load_CIFAR10
 
 cifar10_dir = 'data/cifar-10-batches-py'
 X_train, y_train, X_test, y_test = load_CIFAR10(cifar10_dir)
-# fig, axes = plt.subplots(nrows=3, ncols=20, sharex=True, sharey=True, figsize=(80,12))
-# imgs = X_train[:60]
-# for image, row in zip([imgs[:20], imgs[20:40], imgs[40:60]], axes):
-#     for img, ax in zip(image, row):
-#         ax.imshow(img)
-#         ax.get_xaxis().set_visible(False)
-#         ax.get_yaxis().set_visible(False)
-# fig.tight_layout(pad=0.1)
-# plt.savefig('222.jpg')
+X = np.concatenate((X_train,X_test))
+y = np.concatenate((y_train,y_test))
 
 from sklearn.preprocessing import MinMaxScaler
 minmax = MinMaxScaler()
-images = np.concatenate((X_train[y_train==2],X_test[y_test==2]))
-images_rows = images.reshape(images.shape[0], 32 * 32 * 3)
-images = minmax.fit_transform(images_rows)
-images = images.reshape(images.shape[0], 32, 32, 3)
+X_rows = X.reshape(X.shape[0], 32 * 32 * 3)
+X = minmax.fit_transform(X_rows)
+X = X.reshape(X.shape[0], 32, 32, 3)
+
+
+
 
 
 def get_inputs(noise_dim, image_height, image_width, image_depth):
@@ -151,10 +146,12 @@ def show_generator_output(sess, n_images, inputs_noise, output_dim):
 
 batch_size = 1024
 noise_size = 100
-epochs = 500
+epochs = 10000
 n_samples = 80
 learning_rate = 0.001
 beta1 = 0.4
+
+images = X[y == 1]
 
 
 def train(noise_size, data_shape, batch_size, n_samples):
@@ -162,12 +159,9 @@ def train(noise_size, data_shape, batch_size, n_samples):
     inputs_real, inputs_noise = get_inputs(noise_size, data_shape[1], data_shape[2], data_shape[3])
     g_loss, d_loss = get_loss(inputs_real, inputs_noise, data_shape[-1])
     g_train_opt, d_train_opt = get_optimizer(g_loss, d_loss, beta1, learning_rate)
-    tf.summary.scalar('D_loss', d_loss)
-    tf.summary.scalar('G_loss', g_loss)
-    gdsummary = tf.summary.merge_all()
+
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        writer = tf.summary.FileWriter('./graphs', sess.graph)
         # 迭代epoch
         for e in range(epochs):
             for batch_i in range(images.shape[0] // batch_size - 1):
@@ -183,30 +177,26 @@ def train(noise_size, data_shape, batch_size, n_samples):
                 _ = sess.run(d_train_opt, feed_dict={inputs_real: batch_images,
                                                      inputs_noise: batch_noise})
 
-                gdsum = sess.run(gdsummary, feed_dict={inputs_real: batch_images,
-                                                     inputs_noise: batch_noise})
-                writer.add_summary(gdsum)
-
             train_loss_d = d_loss.eval({inputs_real: batch_images,
-                                                inputs_noise: batch_noise})
+                                        inputs_noise: batch_noise})
             train_loss_g = g_loss.eval({inputs_real: batch_images,
-                                                inputs_noise: batch_noise})
-            print("Epoch {}/{}....".format(e, epochs),
-                    "Discriminator Loss: {:.4f}....".format(train_loss_d),
-                    "Generator Loss: {:.4f}....".format(train_loss_g))
-
-        #训练完成画一张图
-        samples = show_generator_output(sess, n_samples, inputs_noise, data_shape[-1])
-        samples = (samples + 1) / 2
-        fig, axes = plt.subplots(nrows=4, ncols=20, sharex=True, sharey=True, figsize=(80,16))
-        imgs = samples[:80]
-        for image, row in zip([imgs[:20], imgs[20:40], imgs[40:60],imgs[60:80]], axes):
-            for img, ax in zip(image, row):
-                ax.imshow(img)
-                ax.get_xaxis().set_visible(False)
-                ax.get_yaxis().set_visible(False)
-        fig.tight_layout(pad=0.1)
-        plt.savefig('final2.jpg')
+                                        inputs_noise: batch_noise})
+            if e % 100 == 0:
+                print("Epoch {}/{}....".format(e, epochs),
+                      "Discriminator Loss: {:.4f}....".format(train_loss_d),
+                      "Generator Loss: {:.4f}....".format(train_loss_g))
+            if e % 500 ==0:
+                samples = show_generator_output(sess, n_samples, inputs_noise, data_shape[-1])
+                samples = (samples + 1) / 2
+                fig, axes = plt.subplots(nrows=4, ncols=20, sharex=True, sharey=True, figsize=(80, 16))
+                imgs = samples[:80]
+                for image, row in zip([imgs[:20], imgs[20:40], imgs[40:60], imgs[60:80]], axes):
+                    for img, ax in zip(image, row):
+                        ax.imshow(img)
+                        ax.get_xaxis().set_visible(False)
+                        ax.get_yaxis().set_visible(False)
+                fig.tight_layout(pad=0.1)
+                plt.savefig('111final-ep' + str(e) + '.jpg')
 
 with tf.Graph().as_default():
     train(noise_size, [-1, 32, 32, 3], batch_size, n_samples)
