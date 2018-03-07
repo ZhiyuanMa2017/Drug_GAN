@@ -105,7 +105,7 @@ def get_loss(inputs_real, inputs_noise, image_depth, smooth=0.1):
     return g_loss, d_loss
 
 
-def get_optimizer(g_loss, d_loss, learning_rate=0.001):
+def get_optimizer(g_loss, d_loss, learning_rate=0.0001):
 
     train_vars = tf.trainable_variables()
 
@@ -120,15 +120,6 @@ def get_optimizer(g_loss, d_loss, learning_rate=0.001):
     clip_discriminator_var_op = [var.assign(tf.clip_by_value(var, -0.01,0.01)) for var in d_vars]
     return g_opt, d_opt, clip_discriminator_var_op
 
-# def plot_images(samples,e):
-#     samples = (samples + 1) / 2
-#     fig, axes = plt.subplots(nrows=1, ncols=10, sharex=True, sharey=True, figsize=(30,2))
-#     for img, ax in zip(samples, axes):
-#         ax.imshow(img.reshape((32, 32, 3)), cmap='Greys_r')
-#         ax.get_xaxis().set_visible(False)
-#         ax.get_yaxis().set_visible(False)
-#     fig.tight_layout(pad=0)
-#     plt.savefig('epochs'+str(e)+'.jpg')
 
 def show_generator_output(sess, n_images, inputs_noise, output_dim):
 
@@ -143,10 +134,8 @@ def show_generator_output(sess, n_images, inputs_noise, output_dim):
 
 batch_size = 1024
 noise_size = 100
-epochs = 1000
+epochs = 10000
 n_samples = 80
-learning_rate = 0.001
-beta1 = 0.4
 
 images = X[y == 2]
 
@@ -155,7 +144,7 @@ def train(noise_size, data_shape, batch_size, n_samples):
     steps = 0
     inputs_real, inputs_noise = get_inputs(noise_size, data_shape[1], data_shape[2], data_shape[3])
     g_loss, d_loss = get_loss(inputs_real, inputs_noise, data_shape[-1])
-    g_train_opt, d_train_opt, clip_opt = get_optimizer(g_loss, d_loss,  learning_rate)
+    g_train_opt, d_train_opt, clip_opt = get_optimizer(g_loss, d_loss, 0.0001)
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
@@ -184,7 +173,7 @@ def train(noise_size, data_shape, batch_size, n_samples):
                 print("Epoch {}/{}....".format(e, epochs),
                       "Discriminator Loss: {:.4f}....".format(train_loss_d),
                       "Generator Loss: {:.4f}....".format(train_loss_g))
-            if e % 50 ==0:
+            if e % 500 ==0:
                 samples = show_generator_output(sess, n_samples, inputs_noise, data_shape[-1])
                 samples = (samples + 1) / 2
                 fig, axes = plt.subplots(nrows=4, ncols=20, sharex=True, sharey=True, figsize=(80, 16))
