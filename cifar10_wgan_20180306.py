@@ -143,12 +143,12 @@ def show_generator_output(sess, n_images, inputs_noise, output_dim):
 
 batch_size = 1024
 noise_size = 100
-epochs = 1000
+epochs = 10000
 n_samples = 80
 learning_rate = 0.001
 beta1 = 0.4
 
-images = X[y == 2]
+images = X
 
 
 def train(noise_size, data_shape, batch_size, n_samples):
@@ -180,11 +180,11 @@ def train(noise_size, data_shape, batch_size, n_samples):
                                         inputs_noise: batch_noise})
             train_loss_g = g_loss.eval({inputs_real: batch_images,
                                         inputs_noise: batch_noise})
-            if e % 50 == 0:
+            if e % 500 == 0:
                 print("Epoch {}/{}....".format(e, epochs),
                       "Discriminator Loss: {:.4f}....".format(train_loss_d),
                       "Generator Loss: {:.4f}....".format(train_loss_g))
-            if e % 50 ==0:
+            if e % 500 ==0:
                 samples = show_generator_output(sess, n_samples, inputs_noise, data_shape[-1])
                 samples = (samples + 1) / 2
                 fig, axes = plt.subplots(nrows=4, ncols=20, sharex=True, sharey=True, figsize=(80, 16))
@@ -195,7 +195,7 @@ def train(noise_size, data_shape, batch_size, n_samples):
                         ax.get_xaxis().set_visible(False)
                         ax.get_yaxis().set_visible(False)
                 fig.tight_layout(pad=0.1)
-                plt.savefig('2wgan-ep' + str(e) + '.jpg')
+                plt.savefig('allwgan-ep' + str(e) + '.jpg')
 
 with tf.Graph().as_default():
     train(noise_size, [-1, 32, 32, 3], batch_size, n_samples)
