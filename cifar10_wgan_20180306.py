@@ -101,8 +101,10 @@ def get_loss(inputs_real, inputs_noise, image_depth, smooth=0.1):
     d_loss_fake = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=d_logits_fake,
                                                                          labels=tf.zeros_like(d_logits_fake)))
     d_loss = tf.add(d_loss_real, d_loss_fake)
-
-    return g_loss, d_loss
+    tf.summary.scalar('D_loss', d_loss)
+    tf.summary.scalar('G_loss', g_loss)
+    summ = tf.summary.merge_all()
+    return g_loss, d_loss, summ
 
 
 def get_optimizer(g_loss, d_loss, learning_rate=0.001):
@@ -148,17 +150,19 @@ n_samples = 80
 learning_rate = 0.001
 beta1 = 0.4
 
-images = X
+images = X[y==4]
 
 
 def train(noise_size, data_shape, batch_size, n_samples):
     steps = 0
     inputs_real, inputs_noise = get_inputs(noise_size, data_shape[1], data_shape[2], data_shape[3])
-    g_loss, d_loss = get_loss(inputs_real, inputs_noise, data_shape[-1])
+    g_loss, d_loss, summ  = get_loss(inputs_real, inputs_noise, data_shape[-1])
     g_train_opt, d_train_opt, clip_opt = get_optimizer(g_loss, d_loss,  learning_rate)
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
+        writer = tf.summary.FileWriter('./graphs', sess.graph)
+
         # 迭代epoch
         for e in range(epochs):
             for batch_i in range(images.shape[0] // batch_size - 1):
@@ -176,6 +180,9 @@ def train(noise_size, data_shape, batch_size, n_samples):
 
                 _ = sess.run(g_train_opt, feed_dict={inputs_real: batch_images,
                                                      inputs_noise: batch_noise})
+                D_loss, G_loss, summm = sess.run([d_loss, g_loss,summ],feed_dict={inputs_real: batch_images,
+                                                     inputs_noise: batch_noise})
+                writer.add_summary(summm)
             train_loss_d = d_loss.eval({inputs_real: batch_images,
                                         inputs_noise: batch_noise})
             train_loss_g = g_loss.eval({inputs_real: batch_images,
@@ -195,7 +202,7 @@ def train(noise_size, data_shape, batch_size, n_samples):
                         ax.get_xaxis().set_visible(False)
                         ax.get_yaxis().set_visible(False)
                 fig.tight_layout(pad=0.1)
-                plt.savefig('allwgan-ep' + str(e) + '.jpg')
+                plt.savefig('4wgan-ep' + str(e) + '.jpg')
 
 with tf.Graph().as_default():
     train(noise_size, [-1, 32, 32, 3], batch_size, n_samples)
