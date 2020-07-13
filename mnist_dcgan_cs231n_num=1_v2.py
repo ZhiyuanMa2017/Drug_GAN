@@ -180,12 +180,12 @@ with get_session() as sess:
             writer.add_summary(summm)
         # print loss every so often.
         # We want to make sure D_loss doesn't go to 0
-        samples = sess.run(G_sample,feed_dict={is_training: False})
-        fig = show_images(samples[:16])
-        plt.savefig('epoch' + str(epoch) + 'jpg')
+        # samples = sess.run(G_sample,feed_dict={is_training: False})
+        # fig = show_images(samples[:16])
+        # plt.savefig('epoch' + str(epoch) + 'jpg')
         print('Epoch: {}, D: {:.4}, G:{:.4}'.format(epoch, D_loss_curr, G_loss_curr))
 
-    print('Final images')
-    samples = sess.run(G_sample,feed_dict={is_training: False})
-    fig = show_images(samples[:16])
-    plt.savefig('finaltemp111.jpg')
+    # print('Final images')
+    # samples = sess.run(G_sample,feed_dict={is_training: False})
+    # fig = show_images(samples[:16])
+    # plt.savefig('finaltemp111.jpg')
