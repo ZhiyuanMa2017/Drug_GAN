@@ -163,4 +163,3 @@ def load_test_labels(idx_ubyte_file=test_labels_idx1_ubyte_file):
 #
 # if __name__ == '__main__':
 #     run()
-
